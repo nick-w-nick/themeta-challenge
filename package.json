@@ -1,0 +1,24 @@
+{
+  "name": "themeta-challenge",
+  "version": "1.0.0",
+  "description": "",
+  "main": "processFiles.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nick-w-nick/themeta-challenge.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nick-w-nick/themeta-challenge/issues"
+  },
+  "homepage": "https://github.com/nick-w-nick/themeta-challenge#readme",
+  "dependencies": {
+    "jsonfile": "^6.1.0",
+    "node-cron": "^3.0.0"
+  }
+}
