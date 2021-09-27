@@ -1,22 +1,15 @@
-const fs = require('fs');
 const path = require('path');
 const jsonfile = require('jsonfile');
 const cron = require('node-cron');
 
-const watchFiles = require('./watchFiles');
+const { watchFiles } = require('./watchFiles');
+const { updateIndex } = require('./utils');
 
 const worker = process.argv[2];
 
 if (!worker) {
-    return console.log('missing worker name');
+    return console.log('Missing worker name!');
 }
-
-const sleep = (ms) => {
-    console.log(`Sleeping for ${ms}ms`);
-    return new Promise((resolve) => {
-        setTimeout(resolve, ms);
-    });
-};
 
 watchFiles();
 
@@ -32,51 +25,24 @@ cron.schedule('* * * * *', async () => {
     }
     
     const stateData = await jsonfile.readFile(statePath);
-    const fileNames = Object.keys(stateData);
     
-    const fileStatuses = fileNames.map(file => {
-        return {
-            filename: file,
-            processingTime: stateData[file].processingTime,
-            status: stateData[file].status
-        }
-    });
-    
-    const filesToProcess = fileStatuses.filter(file => file.status === 'pending');
+    const filesToProcess = stateData.filter(file => file.status === 'pending');
     console.log(`Found ${filesToProcess.length} pending files in the queue`);
     
-    const fileToProcess = filesToProcess.sort((a, b) => a.processingTime - b.processingTime)[0];
+    const fileToProcess = filesToProcess[0];
     
     if (fileToProcess) {
-        console.log(`Processing file ${fileToProcess.filename}`);
-        processing = true;
-        const fileName = fileToProcess.filename;
-        await jsonfile.writeFile(statePath, { ...stateData, [fileName]: { status: 'processing', worker, ...fileToProcess } });
-        
-        // const updatedStateData = await jsonfile.readFile(statePath);
-        
-        // await Promise.all([
-        //     sleep(processingTime),
-        //     jsonfile.writeFile(statePath, { ...updatedStateData, [fileName]: { status: 'processed', worker, ...fileToProcess } })
-        // ]);
         console.log(`Starting processing...`);
+        processing = true;
+        const { filename, processingTime } = fileToProcess;
+        const fileIndex = stateData.findIndex(file => file.filename === filename);
+        const processingFile = await updateIndex(statePath, fileIndex, { ...fileToProcess, status: 'processing', worker });
+        console.log(`Currently processing ${filename} | Estimated time: ${parseInt(processingTime)}s`);
         
         setTimeout(async () => {
-            console.log(`Currently processing ${fileName}`);
-            const updatedStateData = await jsonfile.readFile(statePath);
-            await jsonfile.writeFile(statePath, { ...updatedStateData, [fileName]: { status: 'processed', worker, ...fileToProcess } });
-            console.log(`Finished processing ${fileName}`);
+            await updateIndex(statePath, fileIndex, { ...processingFile, status: 'processed' });
+            console.log(`Finished processing ${filename} after ${parseInt(processingTime)}s`);
             processing = false;    
-        }, 10000);
-        // sleep(processingTime).then(() => {
-        //     console.log(`Finished processing ${fileName}`);
-        //     processing = false;
-        // });
-        
-        // const updatedStateData = await jsonfile.readFile(statePath);
-        // await jsonfile.writeFile(statePath, { ...updatedStateData, [fileName]: { status: 'processed', worker, ...fileToProcess } });
-        
-        // console.log(`Finished processing ${fileToProcess.filename}`);
-        // return processing = false;
+        }, processingTime * 1000);
     }
 });

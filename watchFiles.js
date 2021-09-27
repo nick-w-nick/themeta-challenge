@@ -1,48 +1,40 @@
-const fs = require('fs');
+const { watch } = require('fs');
 const path = require('path');
 const jsonfile = require('jsonfile');
 
+const { readFile } = require('fs/promises');
 
+const { appendFile } = require('./utils');
 
 const testdir = path.join(__dirname, 'testdir');
 
 const watchFiles = () => {
     console.log('Watching for files...');
-    fs.watch(testdir, async (eventType, filename) => {
+    watch(testdir, async (eventType, filename) => {
         
         // Get current state information
         const statePath = path.join(__dirname, 'state.json');
         const stateData = await jsonfile.readFile(statePath);
         
+        const fileInQueue = stateData.filter(file => file.filename === filename).length > 0;
+        
         // If the file is already in the queue, do nothing
-        if(stateData.hasOwnProperty(filename)) {
-            console.log(`Ignoring ${filename}, already in queue`)
+        if(fileInQueue) {
+            // console.log(`Ignoring ${filename}, already in queue`)
             return;
         }
         
-        const processingTime = fs.readFileSync(path.join(testdir, filename), { encoding: 'utf8' }) || 5000;
-        console.log(processingTime);
+        const processingTime = await readFile(path.join(testdir, filename));
         
-        stateData[filename] = {filename, status: 'pending', processingTime };
+        if (!processingTime.toString()) {
+            // console.log('File data not yet available');
+            return;
+        };
+        
+        const newFile = { filename, status: 'pending', processingTime: parseFloat(processingTime.toString()) };
+        await appendFile(statePath, newFile);
         console.log(`Added ${filename} to the queue`);
-        await jsonfile.writeFile(statePath, stateData);
-        
-        // fs.readFile(path.join(testdir, filename), async (err, data) => {
-        //     console.log(`New file found: ${filename}`)
-        //     if(err) {
-        //         console.log(err);
-        //         return;
-        //     }
-            
-        //     const processingTime = data.toString();
-        //     console.log(`Processing time: ${processingTime}`);
-            
-        //     // Add file to the queue
-        //     stateData[filename] = {filename, status: 'pending', processingTime };
-        //     console.log(`Added ${filename} to the queue`);
-        //     await jsonfile.writeFile(statePath, stateData);
-        // });
     });
 };
 
-module.exports = watchFiles;
+module.exports = { watchFiles };

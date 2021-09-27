@@ -4,4 +4,4 @@ rm -rf ./testdir
 
 mkdir testdir
 
-echo '{}' > state.json
+echo '[]' > state.json
