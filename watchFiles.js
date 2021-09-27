@@ -20,21 +20,28 @@ const watchFiles = () => {
             return;
         }
         
-        fs.readFile(path.join(testdir, filename), async (err, data) => {
-            console.log(`New file found: ${filename}`)
-            if(err) {
-                console.log(err);
-                return;
-            }
+        const processingTime = fs.readFileSync(path.join(testdir, filename), { encoding: 'utf8' }) || 5000;
+        console.log(processingTime);
+        
+        stateData[filename] = {filename, status: 'pending', processingTime };
+        console.log(`Added ${filename} to the queue`);
+        await jsonfile.writeFile(statePath, stateData);
+        
+        // fs.readFile(path.join(testdir, filename), async (err, data) => {
+        //     console.log(`New file found: ${filename}`)
+        //     if(err) {
+        //         console.log(err);
+        //         return;
+        //     }
             
-            const processingTime = data.toString();
-            console.log(`Processing time: ${processingTime}`);
+        //     const processingTime = data.toString();
+        //     console.log(`Processing time: ${processingTime}`);
             
-            // Add file to the queue
-            stateData[filename] = {filename, status: 'pending', processingTime };
-            console.log(`Added ${filename} to the queue`);
-            await jsonfile.writeFile(statePath, stateData);
-        });
+        //     // Add file to the queue
+        //     stateData[filename] = {filename, status: 'pending', processingTime };
+        //     console.log(`Added ${filename} to the queue`);
+        //     await jsonfile.writeFile(statePath, stateData);
+        // });
     });
 };
 

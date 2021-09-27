@@ -12,6 +12,7 @@ if (!worker) {
 }
 
 const sleep = (ms) => {
+    console.log(`Sleeping for ${ms}ms`);
     return new Promise((resolve) => {
         setTimeout(resolve, ms);
     });
@@ -24,7 +25,8 @@ const statePath = path.join(__dirname, 'state.json');
 let processing = false;
 
 cron.schedule('* * * * *', async () => {
-    if (processing) {
+    console.log('Checking queue for new files...');
+    if (processing === true) {
         console.log('Already processing a file!');
         return;
     }
@@ -40,18 +42,41 @@ cron.schedule('* * * * *', async () => {
         }
     });
     
-    const fileToProcess = fileStatuses.filter(file => file.status === 'pending')[0];
+    const filesToProcess = fileStatuses.filter(file => file.status === 'pending');
+    console.log(`Found ${filesToProcess.length} pending files in the queue`);
+    
+    const fileToProcess = filesToProcess.sort((a, b) => a.processingTime - b.processingTime)[0];
     
     if (fileToProcess) {
+        console.log(`Processing file ${fileToProcess.filename}`);
         processing = true;
         const fileName = fileToProcess.filename;
         await jsonfile.writeFile(statePath, { ...stateData, [fileName]: { status: 'processing', worker, ...fileToProcess } });
         
-        await sleep(processingTime * 1000);
+        // const updatedStateData = await jsonfile.readFile(statePath);
         
-        const updatedStateData = await jsonfile.readFile(statePath);
-        await jsonfile.writeFile(statePath, { ...updatedStateData, [fileName]: { status: 'processed', worker, ...fileToProcess } });
+        // await Promise.all([
+        //     sleep(processingTime),
+        //     jsonfile.writeFile(statePath, { ...updatedStateData, [fileName]: { status: 'processed', worker, ...fileToProcess } })
+        // ]);
+        console.log(`Starting processing...`);
         
-        processing = false;
+        setTimeout(async () => {
+            console.log(`Currently processing ${fileName}`);
+            const updatedStateData = await jsonfile.readFile(statePath);
+            await jsonfile.writeFile(statePath, { ...updatedStateData, [fileName]: { status: 'processed', worker, ...fileToProcess } });
+            console.log(`Finished processing ${fileName}`);
+            processing = false;    
+        }, 10000);
+        // sleep(processingTime).then(() => {
+        //     console.log(`Finished processing ${fileName}`);
+        //     processing = false;
+        // });
+        
+        // const updatedStateData = await jsonfile.readFile(statePath);
+        // await jsonfile.writeFile(statePath, { ...updatedStateData, [fileName]: { status: 'processed', worker, ...fileToProcess } });
+        
+        // console.log(`Finished processing ${fileToProcess.filename}`);
+        // return processing = false;
     }
 });
