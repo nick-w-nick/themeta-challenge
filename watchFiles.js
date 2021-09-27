@@ -1,6 +1,7 @@
 const { watch } = require('fs');
 const path = require('path');
 const jsonfile = require('jsonfile');
+const chalk = require('chalk');
 
 const { readFile } = require('fs/promises');
 
@@ -33,7 +34,7 @@ const watchFiles = () => {
         
         const newFile = { filename, status: 'pending', processingTime: parseFloat(processingTime.toString()) };
         await appendFile(statePath, newFile);
-        console.log(`Added ${filename} to the queue`);
+        console.log(`Added ${chalk.blueBright(filename)} to the queue`);
     });
 };
 
