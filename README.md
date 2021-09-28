@@ -5,6 +5,7 @@
 - Run `node processFile.js <worker-name-1>`
 - Run `node processFile.js <worker-name-2>`
 - Run `python simulation.py processing`
+- Wait 1 minute for the initial cron job to run, indicated by the `Checking queue for new files...` message in the terminal
 
 > Run `./cleanup.sh` to remove all generated files and reset the state while testing
 
