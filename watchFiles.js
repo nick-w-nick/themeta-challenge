@@ -1,17 +1,16 @@
 const { watch } = require('fs');
+const { readFile } = require('fs/promises');
 const path = require('path');
 const jsonfile = require('jsonfile');
 const chalk = require('chalk');
 
-const { readFile } = require('fs/promises');
-
 const { appendFile } = require('./utils');
 
-const testdir = path.join(__dirname, 'testdir');
+const processingDir = path.join(__dirname, 'processing');
 
 const watchFiles = () => {
     console.log('Watching for files...');
-    watch(testdir, async (eventType, filename) => {
+    watch(processingDir, async (eventType, filename) => {
         
         // Get current state information
         const statePath = path.join(__dirname, 'state.json');
@@ -25,8 +24,9 @@ const watchFiles = () => {
             return;
         }
         
-        const processingTime = await readFile(path.join(testdir, filename));
+        const processingTime = await readFile(path.join(processingDir, filename));
         
+        // File data isn't always available on the first few events for each file so we ignore those
         if (!processingTime.toString()) {
             // console.log('File data not yet available');
             return;
