@@ -14,4 +14,4 @@ The functionality is split into two different scripts, one being the watcher, `w
 
 `watchFiles` is responsible for watching the `processing` directory and adding any new files to the queue, AKA the JSON file named `state.json`.
 
-`processFile` is responsible for transitioning each file through a series of states, those being `pending`, `processing` and `complete`. Each file is set to `pending` by default and is moved along as the script runs. When that happens is based on when the file was created, as they are added to the queue in the order they were created and processed sequentially.
+`processFile` is responsible for transitioning each file through a series of states, those being `pending`, `processing` and `complete`. Each file is set to `pending` by default and is moved along as the script runs. When that happens is based on when the file was created, as they are added to the queue in the order they were created and processed sequentially. `processFile` is run on a cron job, which is set to run every minute. It will check for pending jobs each minute and will pick the oldest one to process.
