@@ -1,5 +1,6 @@
 # Get Started
 
+- Run `mkdir processing`
 - Run `npm install`
 - Run `node processFile.js <worker-name-1>`
 - Run `node processFile.js <worker-name-2>`
