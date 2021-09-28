@@ -23,7 +23,7 @@ cron.schedule('* * * * *', async () => {
     // Only allow one instance of the worker to run at a time in case a file has a processing time longer than the cron job interval (1 min)
     // This can be triggered by adding a file to the `processing` directory with a value above 60.00
     if (processing === true) {
-        console.log('Already processing a file!');
+        console.log(chalk.red('Already processing a file!'));
         return;
     }
     
@@ -40,7 +40,7 @@ cron.schedule('* * * * *', async () => {
         
         const { filename, processingTime } = fileToProcess;
         
-        // Index of the currently processing file
+        // Index of the file currently being processed
         const fileIndex = stateData.findIndex(file => file.filename === filename);
         
         // Move the file into `processing` status
@@ -48,7 +48,7 @@ cron.schedule('* * * * *', async () => {
         console.log(`Currently processing ${chalk.blueBright(filename)} | Estimated time: ${chalk.yellow.bold(parseInt(processingTime))}s`);
         
         setTimeout(async () => {
-            // Update the status of the file to complete
+            // Update the status of the file to `complete`
             await updateIndex(statePath, fileIndex, { ...processingFile, status: 'complete' });
             console.log(`Finished processing ${chalk.blueBright(filename)} after ${chalk.yellow.bold(parseInt(processingTime))}s`);
             processing = false;
