@@ -7,7 +7,7 @@
 - Run `python simulation.py processing`
 - Wait 1 minute for the initial cron job to run, indicated by the `Checking queue for new files...` message in the terminal
 
-> Run `./cleanup.sh` to remove all generated files and reset the state while testing
+> Run `./cleanup.sh` to remove all generated files and clear the queue while testing
 
 ## Explanation
 
