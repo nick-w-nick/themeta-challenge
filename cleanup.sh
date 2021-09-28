@@ -1,7 +1,7 @@
 #!/bin/bash
 
-rm -rf ./testdir
+rm -rf ./processing
 
-mkdir testdir
+mkdir processing
 
 echo '[]' > state.json
